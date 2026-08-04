@@ -1,5 +1,6 @@
+import secrets
 from rest_framework import serializers
-from .models import Wallet
+from .models import Wallet, Transaction
 
 class WalletSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,4 +27,25 @@ class WalletSerializer(serializers.ModelSerializer):
     def validate_balance(self, value):
         if value < 0:
             raise serializers.ValidationError("Balance cannot be negative")
+        return value
+
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='wallet.profile.user.email', read_only=True)
+    class Meta:
+        model = Transaction
+        fields = ['id', 'user', 'wallet', 'amount', 'transaction_type', 'transaction_status', 'transaction_reference', 'customer_email', 'customer_name', 'transaction_metadata', 'created_at']
+        read_only_fields = ['id', 'user', 'transaction_status', 'transaction_reference', 'created_at']
+
+
+    def create(self):
+        transaction_reference = f"TRX-{secrets.token_hex(4) + str(self.created_at).replace(' ', '').replace('-', '').replace(':', '').replace('.', '')}"
+        transaction = Transaction.objects.create(transaction_reference=transaction_reference, **self.validated_data)
+        return transaction
+
+
+    def validate_amount(self, value):
+        if value < 500:
+            raise serializers.ValidationError("Amount cannot be less than 500")
         return value
