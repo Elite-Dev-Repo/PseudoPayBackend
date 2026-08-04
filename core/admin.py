@@ -12,8 +12,8 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(MerchantProfile)
 class MerchantProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'merchant_email', 'merchant_phone', 'merchant_category')
-    list_filter = ('merchant_category',)
+    list_display = ('user', 'merchant_email', 'merchant_phone')
+    list_filter = ('user_type',)
     search_fields = ('user__email', 'merchant_email', 'merchant_phone')
     ordering = ('user',)
 

@@ -63,18 +63,18 @@ class User(AbstractUser):
 
 
 class MerchantProfile(models.Model):
-    PROFILE_TYPE = [
+    USER_TYPE = [
         ('free', 'Free'),
         ('premium', 'Premium'),
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='merchant_profile')
-    profile_type = models.CharField(max_length=10, choices=PROFILE_TYPE, default='free')
+    user_type = models.CharField(max_length=10, choices=USER_TYPE, default='free')
     merchant_address = models.CharField(max_length=255, blank=True, null=True)
     merchant_phone = models.CharField(max_length=15, blank=True, null=True)
     merchant_email = models.EmailField(unique=True)
     merchant_description = models.TextField(blank=True, null=True)
-    merchant_website = models.URLField(blank=True, null=True)
-    merchant_category = models.CharField(max_length=100, blank=True, null=True)
+    # merchant_website = models.URLField(blank=True, null=True)
+    # merchant_category = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

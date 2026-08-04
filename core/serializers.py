@@ -6,7 +6,7 @@ from .models import User, MerchantProfile, EmailVerificationToken
 class MerchantProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = MerchantProfile
-        fields = ['id', 'user', 'profile_type', 'merchant_address', 'merchant_phone', 'merchant_email', 'merchant_description', 'merchant_website', 'merchant_category', 'created_at']
+        fields = ['id', 'user', 'user_type', 'merchant_address', 'merchant_phone', 'merchant_email', 'merchant_description']
         read_only_fields = ['id', 'user', 'merchant_email', 'created_at']
 
 
