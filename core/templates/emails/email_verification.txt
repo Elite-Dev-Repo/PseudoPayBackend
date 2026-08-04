@@ -1,0 +1,13 @@
+Hello {{ user }},
+
+Thank you for registering. Please use the verification code below to confirm your email address and activate your account:
+
+Verification Code: {{ token }}
+
+This code was generated specifically for your account security.
+
+Did not request this? If you did not sign up for a PseudoPay account, you can safely ignore this email. Someone may have entered your address by mistake.
+
+-- 
+© 2026 PseudoPay. All rights reserved.
+Need support? Contact us at support@pseudopay.com
