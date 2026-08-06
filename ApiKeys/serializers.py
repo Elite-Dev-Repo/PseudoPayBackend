@@ -6,6 +6,7 @@ class ApiKeySerializer(serializers.ModelSerializer):
         model = ApiKey
         fields = ['id', 'user', 'name', 'prefix', 'is_active', 'created_at']
         extra_kwargs = {
+            'user': {'read_only': True},
             'prefix': {'read_only': True},
             'is_active': {'read_only': True},
             'created_at': {'read_only': True},

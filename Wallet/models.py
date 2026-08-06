@@ -1,6 +1,8 @@
+import secrets
 from django.db import models
 from django.contrib.auth import get_user_model
 from core.models import MerchantProfile
+from datetime import datetime
 # Create your models here.
 
 User = get_user_model()
@@ -52,6 +54,11 @@ class Transaction(models.Model):
     currency = models.CharField(max_length=3, default='NGN')
     transaction_metadata = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.transaction_reference:
+            self.transaction_reference = f"TRX-{secrets.token_hex(4)}{str(datetime.now().timestamp()).replace('.', '')}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Transaction - {self.wallet.profile.merchant_email}"

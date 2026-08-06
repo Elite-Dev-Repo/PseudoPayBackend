@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from .models import User, MerchantProfile, EmailVerificationToken
 from .emails import send_html_email
 from django.conf import settings
+from Wallet.models import Transaction
 
 @receiver(post_save, sender=User)
 def create_email_verification_token(sender, instance, created, **kwargs):
@@ -31,4 +32,21 @@ def send_email_verification_token(sender, instance, created, **kwargs):
             },
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[instance.user.email],
+        )
+
+
+
+@receiver(post_save, sender=Transaction)
+def send_transaction_email(sender, instance, created, **kwargs):
+    if created:
+        user = instance.customer_name
+        send_html_email(
+            subject='Transaction Alert - PseudoPay',
+            template_name='emails/transaction.html',
+            context={
+                'user': user,
+                'transaction': instance,
+            },
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[instance.customer_email],
         )

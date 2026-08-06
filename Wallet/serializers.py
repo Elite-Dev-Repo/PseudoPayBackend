@@ -7,21 +7,19 @@ class WalletSerializer(serializers.ModelSerializer):
         model = Wallet
         fields = ['id', 'profile', 'balance', 'currency', 'status', 'request_origin', 'created_at']
         extra_kwargs = {
+            'profile': {'read_only': True},
             'balance': {'read_only': True},
             'created_at': {'read_only': True},
         }
 
 
-    def create(self):
+    def create(self, validated_data):
         user = self.context['request'].user
-        if user.profile.user_type == 'premium':
-            wallet = Wallet.objects.create(user=user, **self.validated_data)
-            return wallet
-
-        if Wallet.objects.filter(user=user).count() >= 3 and user.profile.user_type == 'free':
+        profile = user.merchant_profile
+        if Wallet.objects.filter(profile=profile).count() >= 3:
             raise serializers.ValidationError("You can only have 3 wallets")
-        wallet = Wallet.objects.create(user=user, **self.validated_data)
-        return wallet
+        validated_data['profile'] = profile
+        return super().create(validated_data)
 
 
     def validate_balance(self, value):
@@ -37,12 +35,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = ['id', 'user', 'wallet', 'amount', 'transaction_type', 'transaction_status', 'transaction_reference', 'customer_email', 'customer_name', 'transaction_metadata', 'created_at']
         read_only_fields = ['id', 'user', 'transaction_status', 'transaction_reference', 'created_at']
-
-
-    def create(self):
-        transaction_reference = f"TRX-{secrets.token_hex(4) + str(self.created_at).replace(' ', '').replace('-', '').replace(':', '').replace('.', '')}"
-        transaction = Transaction.objects.create(transaction_reference=transaction_reference, **self.validated_data)
-        return transaction
 
 
     def validate_amount(self, value):
