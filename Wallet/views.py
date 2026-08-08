@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import transaction as db_transaction
+from functools import partial
+from .services import send_transaction_email
 # Create your views here.
 
 class WalletViewSet(viewsets.ModelViewSet):
@@ -60,6 +62,8 @@ def checkout(request, transaction_reference):
     if request.method == 'GET':
         payment_transaction = Transaction.objects.get(transaction_reference=transaction_reference)
         wallet = payment_transaction.wallet
+        if payment_transaction.transaction_status == 'SUCCESSFUL':
+            return redirect('payment_success', transaction_reference=payment_transaction.transaction_reference)
         return render(request, 'checkout.html', {'transaction': payment_transaction})
     elif request.method == 'POST':
         with db_transaction.atomic():
@@ -75,6 +79,9 @@ def checkout(request, transaction_reference):
             payment_transaction.transaction_status = 'SUCCESSFUL'
             payment_transaction.save()
             wallet.save()
+            db_transaction.on_commit(
+                partial(send_transaction_email, payment_transaction.customer_name, payment_transaction)
+            )
             return redirect('payment_success', transaction_reference=payment_transaction.transaction_reference)
 
 # class TransactionViewSet(viewsets.ModelViewSet):

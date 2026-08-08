@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>You just initiated a transaction - PseudoPay</title>
+    <title>Transaction Complete - PseudoPay</title>
     <style>
       body {
         margin: 0;
@@ -46,7 +46,7 @@
         letter-spacing: -0.025em;
       }
       .content {
-        padding: 40px;
+        padding: 36px 40px 32px;
         line-height: 1.6;
       }
       .welcome-text {
@@ -57,37 +57,71 @@
         margin-bottom: 8px;
       }
       .intro-text {
-        font-size: 16px;
+        font-size: 15px;
         color: #475569;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
       }
-      .code-box {
-        background-color: #f1f5f9;
-        border: 2px dashed #cbd5e1;
+      .status-badge {
+        display: inline-block;
+        background-color: #ecfdf3;
+        border: 1px solid #a6f4c5;
+        color: #047857;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        padding: 6px 16px;
+        border-radius: 20px;
+        margin-bottom: 28px;
+      }
+      .receipt {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 24px;
-        text-align: center;
-        margin-bottom: 32px;
+        margin-bottom: 28px;
       }
-      .verification-code {
-        font-family: "Courier New", Courier, monospace;
-        font-size: 36px;
+      .amount {
+        font-size: 34px;
         font-weight: 800;
-        letter-spacing: 6px;
-        color: #4f46e5;
-        margin: 0;
+        color: #0f172a;
+        letter-spacing: -0.025em;
+        margin: 0 0 20px;
+        text-align: center;
       }
-      .expires-text {
+      .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-top: 1px solid #e2e8f0;
+      }
+      .receipt-row:first-of-type {
+        border-top: none;
+        padding-top: 0;
+      }
+      .receipt-label {
         font-size: 13px;
         color: #64748b;
-        margin-top: 8px;
-        margin-bottom: 0;
+      }
+      .receipt-value {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+        text-align: right;
+        word-break: break-all;
+      }
+      .receipt-value.code {
+        font-family: "Courier New", Courier, monospace;
+        font-size: 12px;
       }
       .security-notice {
         border-top: 1px solid #e2e8f0;
         padding-top: 24px;
         font-size: 14px;
         color: #64748b;
+      }
+      .security-notice p {
+        margin: 0 0 8px;
       }
       .footer {
         background-color: #f8fafc;
@@ -121,29 +155,62 @@
         <div class="content">
           <p class="welcome-text">Hello {{ user }},</p>
           <p class="intro-text">
-            You just initiated a transaction of {{ transaction.amount }} for a
-            purchase via PseudoPay.
+            Your transaction has been completed successfully. Here are the
+            details of your payment via PseudoPay.
           </p>
 
-          <div class="code-box">
-            <p class="verification-code">Amount: {{ transaction.amount }}</p>
-            <p class="verification-code">
-              Transaction Reference: {{ transaction.transaction_reference }}
+          <div style="text-align: center">
+            <span class="status-badge">&#10003;&nbsp; Payment Successful</span>
+          </div>
+
+          <div class="receipt">
+            <p class="amount">
+              {{ transaction.currency }} {{ transaction.amount }}
             </p>
-            <p class="verification-code">Date: {{ transaction.created_at }}</p>
-            <p class="verification-code">Status: {{ transaction.status }}</p>
-            <p class="expires-text">
-              This message is for notification purposes only. Do not reply to
-              this email.
-            </p>
+
+            <div class="receipt-row">
+              <span class="receipt-label">Status</span>
+              <span
+                class="receipt-value"
+                style="color: #047857"
+                >{{ transaction.transaction_status }}</span
+              >
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Type</span>
+              <span class="receipt-value">{{ transaction.transaction_type }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Customer</span>
+              <span class="receipt-value">{{ transaction.customer_name }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Customer Email</span>
+              <span class="receipt-value">{{ transaction.customer_email }}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Reference</span>
+              <span class="receipt-value code">
+                {{ transaction.transaction_reference }}
+              </span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">Date</span>
+              <span class="receipt-value">
+                {{ transaction.created_at|date:"F j, Y g:i A" }}
+              </span>
+            </div>
           </div>
 
           <div class="security-notice">
             <p>
-              <strong>Did not initiate this transaction?</strong> If you did not
-              initiate this transaction, you can safely ignore this email.
-              Someone may have entered your address by mistake or you may have
-              initiated this transaction in error.
+              <strong>Did not make this payment?</strong> If you did not initiate
+              this transaction, please contact us immediately at
+              <a href="mailto:support@pseudopay.com">support@pseudopay.com</a>.
+            </p>
+            <p>
+              This message is a receipt from the PseudoPay mock payment gateway
+              in test mode. No real money was charged.
             </p>
           </div>
         </div>
