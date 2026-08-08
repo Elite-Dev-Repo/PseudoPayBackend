@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.0/css/all.min.css"
+      integrity="sha512-ApSLB1Pd3/bZN8fWB/RG9YhN/7bd9Hkf3AGaE2mPfebjrxagjuBtx2GcgdqIlJkUzwylBo61r9Xa9NmgBI0swA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <title>Secure Checkout | PseudoPay</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      min-height: 100vh;
+      font-family:
+        -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        &quot;Helvetica Neue&quot;, Arial, sans-serif;
+      background: #f2f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+    "
+  >
+    <form
+      id="checkout-form"
+      method="POST"
+      onsubmit="return handlePay(event);"
+      style="
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(30, 42, 60, 0.15);
+      "
+    >
+      {% csrf_token %}
+
+      <!-- TEST MODE banner -->
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: lightblue;
+          padding: 8px 12px;
+        "
+      >
+        <span
+          style="
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #4a3b00;
+            text-transform: uppercase;
+          "
+        >
+          <i
+            class="fa-solid fa-triangle-exclamation"
+            style="color: black; margin-right: 5px"
+          ></i>
+          You are not using real money.
+        </span>
+      </div>
+
+      <!-- Header -->
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 24px 0;
+        "
+      >
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span
+            style="
+              width: 34px;
+              height: 34px;
+              background: #2e2a41;
+              color: #ffffff;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 800;
+              font-size: 15px;
+            "
+            >P</span
+          >
+          <div style="line-height: 1.1">
+            <span
+              style="
+                font-size: 15px;
+                color: #101828;
+                font-weight: 700;
+                display: block;
+              "
+              >PseudoPay</span
+            >
+            <span style="font-size: 12px; color: #667085; display: block"
+              >Secure Checkout</span
+            >
+          </div>
+        </div>
+        <span
+          style="
+            font-size: 12px;
+            color: #667085;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          "
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#2e2a41"
+            stroke-width="2"
+          >
+            <rect x="4" y="10" width="16" height="10" rx="2" />
+            <path d="M8 10V7a4 4 0 1 1 8 0v3" />
+          </svg>
+          Encrypted
+        </span>
+      </div>
+
+      <!-- Merchant + Amount -->
+      <div style="padding: 20px 24px 0">
+        <p
+          style="margin: 0; font-size: 15px; color: #667085; text-align: center"
+        >
+          Hello
+          <strong style="color: #101828"
+            >{{ transaction.customer_name }},</strong
+          >
+          you are paying
+          <strong style="color: #101828"
+            >{{ transaction.merchant_name }}</strong
+          >
+        </p>
+
+        <div style="margin-top: 12px; text-align: center">
+          <span
+            style="
+              font-size: 18px;
+              font-weight: 800;
+              color: #101828;
+              letter-spacing: -0.5px;
+            "
+            >{{ transaction.amount }}</span
+          >
+          <span
+            style="
+              font-size: 14px;
+              color: #667085;
+              margin-left: 4px;
+              font-weight: 600;
+            "
+            >{{ transaction.currency }}</span
+          >
+        </div>
+        <div
+          style="
+            margin-top: 8px;
+            text-align: center;
+            font-size: 12px;
+            color: #98a2b3;
+          "
+        >
+          Ref: {{ transaction.transaction_reference }}
+        </div>
+      </div>
+
+      <!-- Card inputs -->
+      <div style="padding: 20px 24px 0">
+        <label
+          for="card-number"
+          style="
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #344054;
+            margin-bottom: 6px;
+          "
+          >Card number</label
+        >
+        <div style="position: relative">
+          <input
+            id="card-number"
+            name="card_number"
+            type="text"
+            value="4084 0840 8408 4081"
+            oninput="formatCard(this)"
+            maxlength="19"
+            style="
+              width: 100%;
+              box-sizing: border-box;
+              padding: 12px 14px;
+              border: 1px solid #d0d5dd;
+              border-radius: 8px;
+              font-size: 15px;
+              color: #101828;
+              outline: none;
+              background: #f9fafb;
+              letter-spacing: 1px;
+            "
+          />
+          <span
+            style="
+              position: absolute;
+              right: 12px;
+              top: 50%;
+              transform: translateY(-50%);
+              font-size: 14px;
+            "
+            ><i class="fa-solid fa-credit-card"></i
+          ></span>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 14px">
+          <div style="flex: 1">
+            <label
+              for="expiry"
+              style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #344054;
+                margin-bottom: 6px;
+              "
+              >Expiry</label
+            >
+            <input
+              id="expiry"
+              name="expiry"
+              type="text"
+              value="02/28"
+              placeholder="MM/YY"
+              maxlength="5"
+              style="
+                width: 100%;
+                box-sizing: border-box;
+                padding: 12px 14px;
+                border: 1px solid #d0d5dd;
+                border-radius: 8px;
+                font-size: 15px;
+                color: #101828;
+                outline: none;
+                background: #f9fafb;
+              "
+            />
+          </div>
+          <div style="flex: 1">
+            <label
+              for="cvv"
+              style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: #344054;
+                margin-bottom: 6px;
+              "
+              >CVV</label
+            >
+            <input
+              id="cvv"
+              name="cvv"
+              type="password"
+              value="408"
+              placeholder="•••"
+              maxlength="4"
+              style="
+                width: 100%;
+                box-sizing: border-box;
+                padding: 12px 14px;
+                border: 1px solid #d0d5dd;
+                border-radius: 8px;
+                font-size: 15px;
+                color: #101828;
+                outline: none;
+                background: #f9fafb;
+              "
+            />
+          </div>
+        </div>
+
+        <p
+          style="
+            margin: 12px 0 0;
+            font-size: 12px;
+            color: #98a2b3;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          "
+        >
+          <span
+            style="
+              font-size: 11px;
+              background: #fffaeb;
+              color: #b54708;
+              border: 1px solid #fedd7a;
+              padding: 2px 8px;
+              border-radius: 20px;
+              font-weight: 600;
+            "
+            >TEST</span
+          >
+          Test card 4084 0840 8408 4081 · any future expiry · any CVV
+        </p>
+      </div>
+
+      <!-- Status area -->
+      <div style="padding: 16px 24px 0">
+        <div
+          id="status-box"
+          style="
+            display: none;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+          "
+        ></div>
+      </div>
+
+      <!-- Buttons -->
+      <div
+        style="
+          padding: 20px 24px 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        "
+      >
+        <button
+          id="pay-button"
+          type="submit"
+          style="
+            width: 100%;
+            padding: 14px;
+            background: #2e2a41;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s ease;
+          "
+          onmouseover="this.style.background = '#096746'"
+          onmouseout="this.style.background = '#2e2a41'"
+        >
+          Pay {{ transaction.currency }} {{ transaction.amount }}
+        </button>
+
+        <button
+          type="button"
+          onclick="window.location.href = '/'"
+          style="
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #475467;
+            border: 1px solid #d0d5dd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+          "
+          onmouseover="this.style.background = '#f2f4f7'"
+          onmouseout="this.style.background = 'transparent'"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+
+    <script>
+      const payButton = document.getElementById("pay-button");
+      const statusBox = document.getElementById("status-box");
+
+      function setStatus(ok, message) {
+        statusBox.style.display = "block";
+        statusBox.style.background = ok ? "#ecfdf3" : "#fef3f2";
+        statusBox.style.color = ok ? "#027a48" : "#b42318";
+        statusBox.style.border = ok ? "1px solid #a6f4c5" : "1px solid #fecdca";
+        statusBox.textContent = message;
+      }
+
+      function hideStatus() {
+        statusBox.style.display = "none";
+      }
+
+      function formatCard(value) {
+        return value
+          .replace(/\D/g, "")
+          .slice(0, 16)
+          .replace(/(\d{4})(?=\d)/g, "$1 ");
+      }
+
+      document.getElementById("card-number").addEventListener("input", (e) => {
+        e.target.value = formatCard(e.target.value);
+      });
+
+      document.getElementById("expiry").addEventListener("input", (e) => {
+        let v = e.target.value.replace(/\D/g, "").slice(0, 4);
+        if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
+        e.target.value = v;
+      });
+
+      async function handlePay(event) {
+        event.preventDefault();
+        hideStatus();
+
+        const csrfToken = document.querySelector(
+          '[name="csrfmiddlewaretoken"]',
+        ).value;
+
+        payButton.disabled = true;
+        payButton.style.opacity = "0.7";
+        payButton.textContent = "Processing…";
+
+        try {
+          const res = await fetch(window.location.href, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken,
+            },
+            body: JSON.stringify({}),
+          });
+
+          if (res.redirected) {
+            window.location.href = res.url;
+            return false;
+          }
+
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (err) {
+            /* response body is not JSON */
+          }
+
+          if (!res.ok) {
+            setStatus(
+              false,
+              data.error || data.message || "Payment could not be completed.",
+            );
+          } else {
+            setStatus(true, "Payment successful. Thank you!");
+            payButton.textContent = "Paid";
+            payButton.style.background = "#2e2a41";
+          }
+        } catch (err) {
+          setStatus(false, "Payment could not be completed. Please try again.");
+        } finally {
+          payButton.disabled = false;
+          payButton.style.opacity = "1";
+          if (payButton.textContent !== "Paid") {
+            payButton.textContent =
+              "Pay {{ transaction.currency }} {{ transaction.amount }}";
+          }
+        }
+
+        return false;
+      }
+    </script>
+  </body>
+</html>

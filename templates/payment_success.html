@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Successful | PseudoPay</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      min-height: 100vh;
+      font-family:
+        -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        &quot;Helvetica Neue&quot;, Arial, sans-serif;
+      background: #f2f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        max-width: 420px;
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(30, 42, 60, 0.15);
+        text-align: center;
+      "
+    >
+      <!-- Header -->
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 20px 24px 0;
+        "
+      >
+        <span
+          style="
+            width: 34px;
+            height: 34px;
+            background: #2e2a41;
+            color: #ffffff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+          "
+          >P</span
+        >
+        <span style="font-size: 15px; color: #101828; font-weight: 700"
+          >PseudoPay</span
+        >
+      </div>
+
+      <!-- Success check -->
+      <div style="padding: 28px 24px 0">
+        <span
+          style="
+            width: 72px;
+            height: 72px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: #ecfdf3;
+            border: 6px solid #d1fadf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M5 12.5l4.5 4.5L19 7"
+              stroke="#027a48"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+
+        <h1
+          style="
+            margin: 20px 0 6px;
+            font-size: 24px;
+            font-weight: 800;
+            color: #101828;
+            letter-spacing: -0.5px;
+          "
+        >
+          Payment Successful
+        </h1>
+        <p style="margin: 0; font-size: 14px; color: #667085">
+          Your transaction was completed successfully. Thank you!
+        </p>
+      </div>
+
+      <!-- Amount -->
+      <div
+        style="
+          margin: 24px 24px 0;
+          padding: 18px;
+          background: #f9fafb;
+          border: 1px solid #eaecf0;
+          border-radius: 10px;
+        "
+      >
+        <span
+          style="
+            display: block;
+            font-size: 32px;
+            font-weight: 800;
+            color: #2e2a41;
+            letter-spacing: -1px;
+          "
+          >{{ transaction.currency }} {{ transaction.amount }}</span
+        >
+        <span
+          style="
+            display: block;
+            margin-top: 4px;
+            font-size: 13px;
+            color: #667085;
+          "
+        >
+          {{ transaction.transaction_reference }}
+        </span>
+      </div>
+
+      <!-- Details -->
+      <div
+        style="
+          padding: 20px 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          text-align: left;
+        "
+      >
+        <div style="display: flex; justify-content: space-between">
+          <span style="font-size: 13px; color: #667085">Payer</span>
+          <span style="font-size: 13px; color: #101828; font-weight: 600">
+            {{ transaction.customer_name }}
+          </span>
+        </div>
+        <div style="display: flex; justify-content: space-between">
+          <span style="font-size: 13px; color: #667085">Paid to</span>
+          <span style="font-size: 13px; color: #101828; font-weight: 600">
+            {{ transaction.customer_email }}
+          </span>
+        </div>
+        <div style="display: flex; justify-content: space-between">
+          <span style="font-size: 13px; color: #667085">Reference</span>
+          <span
+            style="
+              font-size: 12px;
+              color: #344054;
+              font-weight: 600;
+              font-family: &quot;Courier New&quot;, monospace;
+            "
+          >
+            {{ transaction.transaction_reference }}
+          </span>
+        </div>
+        <div style="display: flex; justify-content: space-between">
+          <span style="font-size: 13px; color: #667085">Status</span>
+          <span
+            style="
+              font-size: 12px;
+              color: #027a48;
+              background: #ecfdf3;
+              border: 1px solid #a6f4c5;
+              padding: 2px 10px;
+              border-radius: 20px;
+              font-weight: 600;
+            "
+            >Successful</span
+          >
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div
+        style="
+          padding: 4px 24px 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        "
+      >
+        <button
+          onclick="window.location.href = 'https://pseudopay.com'"
+          style="
+            width: 100%;
+            padding: 14px;
+            background: #2e2a41;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s ease;
+          "
+          onmouseover="this.style.background = '#096746'"
+          onmouseout="this.style.background = '#2e2a41'"
+        >
+          Visit PseudoPay
+        </button>
+      </div>
+    </div>
+  </body>
+</html>
