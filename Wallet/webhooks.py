@@ -9,8 +9,8 @@ class WebhookHandler:
         self.transaction = transaction
 
     def send_webhook(self):
-        # url = self.transaction.wallet.profile.request_origin
-        url = "https://warm-phoenix-48.webhook.cool"
+        url = self.transaction.wallet.profile.request_origin
+        # url = "https://warm-phoenix-48.webhook.cool"
         if not url:
             return
         payload = {
