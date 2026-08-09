@@ -42,10 +42,9 @@ class MerchantProfileUpdateView(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         user = self.request.user
         owner = self.get_object().user
-        if user != owner:
+        if user != owner or not user.is_staff:
             raise PermissionDenied("You are not authorized to update this profile")
         serializer.save(user=self.request.user)
-
 
 class getUserProfileView(generics.RetrieveAPIView):
     queryset = User.objects.prefetch_related('merchant_profile')
