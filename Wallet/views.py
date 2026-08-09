@@ -1,3 +1,4 @@
+from Wallet.services import on_transaction_commit
 from Wallet.webhooks import WebhookHandler
 from core.models import MerchantProfile
 from django.http import JsonResponse
@@ -81,11 +82,9 @@ def checkout(request, transaction_reference):
             payment_transaction.save()
             wallet.save()
             db_transaction.on_commit(
-                partial(send_transaction_email, payment_transaction.customer_name, payment_transaction)
+                partial(on_transaction_commit, payment_transaction)
             )
-            db_transaction.on_commit(
-                partial(WebhookHandler(payment_transaction).send_webhook)
-            )
+            
             return redirect('payment_success', transaction_reference=payment_transaction.transaction_reference)
 
 # class TransactionViewSet(viewsets.ModelViewSet):
