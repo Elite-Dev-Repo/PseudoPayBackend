@@ -4,7 +4,7 @@ from .views import WalletViewSet,ViewUserTransactionsAPIView, InitializeTransact
 
 urlpatterns = [
     path('wallet/', WalletViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('wallet/<int:pk>/', WalletViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
+    path('wallet/<int:pk>/', WalletViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy', 'patch': 'update'})),
     path('transaction/', ViewUserTransactionsAPIView.as_view()),
     path('transaction/initialize/', InitializeTransaction.as_view()),
     path('checkout/<str:transaction_reference>/', checkout, name='checkout'),

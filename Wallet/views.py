@@ -11,16 +11,28 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import transaction as db_transaction
 from functools import partial
-from .services import send_transaction_email
+
+from ApiKeys.authentication import APIKeyHeaderAuthentication
 # Create your views here.
 
 class WalletViewSet(viewsets.ModelViewSet):
     queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        user = self.request.user
+        wallet = self.get_object()
+        if user.is_superuser or user == wallet.profile.user:
+            wallet.request_origin = request.data['request_origin']
+            wallet.save()
+            return Response(self.get_serializer(wallet).data, status=status.HTTP_200_OK)
+        return Response({"error": "You are not authorized to perform this action"}, status=status.HTTP_403_FORBIDDEN)
 
 class ViewUserTransactionsAPIView(generics.ListAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -34,6 +46,8 @@ class ViewUserTransactionsAPIView(generics.ListAPIView):
 class InitializeTransaction(generics.CreateAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [APIKeyHeaderAuthentication]
 
     def create(self, request):
         with db_transaction.atomic():
@@ -56,11 +70,13 @@ class InitializeTransaction(generics.CreateAPIView):
 
 
 def payment_success(request, transaction_reference):
+    authentication_classes = [APIKeyHeaderAuthentication]
     payment_transaction = Transaction.objects.get(transaction_reference=transaction_reference)
     return render(request, 'payment_success.html', {'transaction': payment_transaction})
 
 
 def checkout(request, transaction_reference):
+    authentication_classes = [APIKeyHeaderAuthentication]
     if request.method == 'GET':
         payment_transaction = Transaction.objects.get(transaction_reference=transaction_reference)
         wallet = payment_transaction.wallet
@@ -86,6 +102,68 @@ def checkout(request, transaction_reference):
             )
             
             return redirect('payment_success', transaction_reference=payment_transaction.transaction_reference)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # class TransactionViewSet(viewsets.ModelViewSet):
 #     queryset = Transaction.objects.all()

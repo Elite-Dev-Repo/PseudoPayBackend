@@ -4,3 +4,4 @@ __pycache__
 inspect_db.py
 execute_db_fix.py
 verify_schema.py
+api.http

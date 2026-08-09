@@ -1,7 +1,7 @@
 import hashlib
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from .models import APIKey
+from .models import ApiKey
 
 class APIKeyHeaderAuthentication(BaseAuthentication):
     """
@@ -27,11 +27,11 @@ class APIKeyHeaderAuthentication(BaseAuthentication):
 
         # 4. Query database for matching active key
         try:
-            key_obj = APIKey.objects.select_related('user').get(
-                key_hash=hashed_input_key, 
+            key_obj = ApiKey.objects.select_related('user').get(
+                key=hashed_input_key, 
                 is_active=True
             )
-        except APIKey.DoesNotExist:
+        except ApiKey.DoesNotExist:
             raise AuthenticationFailed('Invalid or inactive API key.')
 
         # 5. Return (user, auth) tuple to set request.user and request.auth
