@@ -4,7 +4,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User, MerchantProfile, EmailVerificationToken
-from .serializers import UserSerializer, MerchantProfileSerializer, EmailVerificationTokenSerializer,ResendEmailVerificationTokenSerializer
+from .serializers import UserSerializer, MerchantProfileSerializer, EmailVerificationTokenSerializer,ResendEmailVerificationTokenSerializer, UserProfileUpdateSerializer
 from rest_framework.exceptions import PermissionDenied
 from django.db import transaction
 from rest_framework.views import APIView
@@ -45,7 +45,7 @@ class MerchantProfileUpdateView(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         user = self.request.user
         owner = self.get_object().user
-        if user != owner or not user.is_staff:
+        if user != owner:
             raise PermissionDenied("You are not authorized to update this profile")
         serializer.save(user=self.request.user)
 
@@ -54,6 +54,15 @@ class getUserProfileView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     throttle_scope = 'profile'
+
+    def get_object(self):
+        return self.request.user
+
+
+class UpdateUserProfileView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user

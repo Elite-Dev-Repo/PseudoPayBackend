@@ -10,6 +10,12 @@ class MerchantProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'user_type', 'merchant_email', 'created_at']
 
 
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['date_of_birth', 'gender']
+
+
 class EmailVerificationTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailVerificationToken

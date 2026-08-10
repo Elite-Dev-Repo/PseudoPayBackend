@@ -24,6 +24,13 @@ class WalletViewSet(viewsets.ModelViewSet):
     serializer_class = WalletSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Wallet.objects.all()
+        user_profile = MerchantProfile.objects.get(user=user)
+        return Wallet.objects.filter(profile=user_profile)
+
     def update(self, request, *args, **kwargs):
         user = self.request.user
         wallet = self.get_object()
