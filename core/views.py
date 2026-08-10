@@ -22,6 +22,7 @@ class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     # client_class is only needed if you are using specific OAuth2 flows
     client_class = OAuth2Client
+    throttle_scope = 'google_login'
 
 
 
@@ -29,12 +30,14 @@ class UserRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+    throttle_scope = 'register'
 
 
 class MerchantProfileUpdateView(generics.RetrieveUpdateAPIView):
     queryset = MerchantProfile.objects.all()
     serializer_class = MerchantProfileSerializer
     permission_classes = [IsAuthenticated]
+    throttle_scope = 'profile'
 
     def get_object(self):
         return self.request.user.merchant_profile
@@ -50,6 +53,7 @@ class getUserProfileView(generics.RetrieveAPIView):
     queryset = User.objects.prefetch_related('merchant_profile')
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    throttle_scope = 'profile'
 
     def get_object(self):
         return self.request.user
@@ -58,6 +62,7 @@ class getUserProfileView(generics.RetrieveAPIView):
 class ResendEmailVerificationTokenView(APIView):
     permission_classes = [AllowAny]
     serializer_class = EmailVerificationTokenSerializer
+    throttle_scope = 'resend_email'
 
     def post(self, request):
         email = request.data.get('email')
@@ -79,6 +84,7 @@ class ResendEmailVerificationTokenView(APIView):
 class VerifyEmailView(APIView):
     permission_classes = [AllowAny]
     serializer_class = EmailVerificationTokenSerializer
+    throttle_scope = 'verify_email'
 
     def post(self, request):
         with transaction.atomic():
@@ -107,6 +113,7 @@ class VerifyEmailView(APIView):
 class ResendTokenView(APIView):
     permission_classes = [AllowAny]
     serializer_class = ResendEmailVerificationTokenSerializer
+    throttle_scope = 'resend_email'
 
     def post(self, request):
         email = request.data.get('email')

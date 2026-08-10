@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import ssl
 from dotenv import load_dotenv
 from datetime import timedelta
 
@@ -175,6 +176,41 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        # Unauthenticated requests
+        'anon': '10/min',
+        # Wallet operations
+        'wallet': '100/min',
+        # Registration and OAuth login
+        'register': '5/hour',
+        'google_login': '10/min',
+        # Email verification
+        'verify_email': '10/min',
+        'resend_email': '3/hour',
+        # User profile reads/updates
+        'profile': '30/min',
+        # Transactions
+        'transactions': '60/min',
+        'payments': '30/min',
+        # API key management
+        'api_keys': '30/min',
+    }
+}
+
+REDIS_URL = os.getenv('REDIS_BROKER_URL') or 'redis://127.0.0.1:6379/1'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "ssl_cert_reqs": ssl.CERT_NONE,
+        } if REDIS_URL.startswith("rediss://") else {},
+    }
 }
 
 SIMPLE_JWT = {
@@ -193,9 +229,9 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
 
-CELERY_BROKER_URL = os.getenv('REDIS_BROKER_URL')
+CELERY_BROKER_URL = REDIS_URL
+if REDIS_URL.startswith("rediss://"):
+    CELERY_BROKER_USE_SSL = {
+        'ssl_cert_reqs': ssl.CERT_NONE
+    }

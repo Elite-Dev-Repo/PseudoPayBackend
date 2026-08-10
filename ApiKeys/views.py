@@ -11,6 +11,7 @@ from .serializers import ApiKeySerializer
 class ApiKeyListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ApiKeySerializer
+    throttle_scope = 'api_keys'
 
     def get_queryset(self):
         return ApiKey.objects.filter(user=self.request.user)
@@ -18,6 +19,7 @@ class ApiKeyListView(generics.ListAPIView):
 class ApiKeyCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ApiKeySerializer
+    throttle_scope = 'api_keys'
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -30,6 +32,7 @@ class ApiKeyCreateView(generics.CreateAPIView):
 class ApiKeyDeleteView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = ApiKey.objects.all()
+    throttle_scope = 'api_keys'
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

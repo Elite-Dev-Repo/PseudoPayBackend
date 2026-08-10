@@ -11,11 +11,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import transaction as db_transaction
 from functools import partial
+from .tasks import on_transaction_commit_task
+from rest_framework.throttling import ScopedRateThrottle
 
 from ApiKeys.authentication import APIKeyHeaderAuthentication
 # Create your views here.
 
 class WalletViewSet(viewsets.ModelViewSet):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'wallet'
     queryset = Wallet.objects.all()
     serializer_class = WalletSerializer
     permission_classes = [IsAuthenticated]
@@ -33,6 +37,7 @@ class ViewUserTransactionsAPIView(generics.ListAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    throttle_scope = 'transactions'
 
     def get_queryset(self):
         user = self.request.user
@@ -48,6 +53,7 @@ class InitializeTransaction(generics.CreateAPIView):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [APIKeyHeaderAuthentication]
+    throttle_scope = 'payments'
 
     def create(self, request):
         with db_transaction.atomic():
@@ -97,8 +103,11 @@ def checkout(request, transaction_reference):
             payment_transaction.transaction_status = 'SUCCESSFUL'
             payment_transaction.save()
             wallet.save()
+            # db_transaction.on_commit(
+            #     partial(on_transaction_commit, payment_transaction)
+            # )
             db_transaction.on_commit(
-                partial(on_transaction_commit, payment_transaction)
+                partial(on_transaction_commit_task.delay, payment_transaction)
             )
             
             return redirect('payment_success', transaction_reference=payment_transaction.transaction_reference)
