@@ -24,6 +24,7 @@ class WalletViewSet(viewsets.ModelViewSet):
     serializer_class = WalletSerializer
     permission_classes = [IsAuthenticated]
 
+
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
@@ -48,6 +49,7 @@ class ViewUserTransactionsAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        # print(self.request)
         if user.is_superuser:
             return Transaction.objects.all()
         user_profile = MerchantProfile.objects.get(user=user)

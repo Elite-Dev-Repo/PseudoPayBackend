@@ -38,6 +38,11 @@ ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS_RAW.split(',') if h.strip()]
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+# Allow testserver for Django test client and local dev
+if DEBUG:
+    for _h in ['testserver', '127.0.0.1', 'localhost']:
+        if _h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_h)
 ALLOWED_HOSTS = list(dict.fromkeys(ALLOWED_HOSTS))
 
 
@@ -205,6 +210,9 @@ REST_FRAMEWORK = {
         'payments': '30/min',
         # API key management
         'api_keys': '30/min',
+        # Password reset
+        'password_reset': '20/hour',
+        'password_reset_confirm': '20/hour',
     }
 }
 
@@ -226,12 +234,23 @@ SIMPLE_JWT = {
 }
 
 
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173').rstrip('/')
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = os.getenv('EMAIL_PORT')
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL')
+# EMAIL_USE_SSL expects boolean; env var is string like "True" - normalize
+_raw_ssl = os.getenv('EMAIL_USE_SSL', 'True')
+EMAIL_USE_SSL = str(_raw_ssl).lower() in ('true', '1', 'yes')
+# Parse port as int if provided
+if EMAIL_PORT:
+    try:
+        EMAIL_PORT = int(EMAIL_PORT)
+    except ValueError:
+        pass
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@pseudopay.com')
 
 
 CORS_ALLOW_ALL_ORIGINS = True

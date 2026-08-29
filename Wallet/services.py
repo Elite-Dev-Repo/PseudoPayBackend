@@ -19,3 +19,17 @@ def send_transaction_email(transaction):
 def on_transaction_commit(transaction):
     send_transaction_email(transaction)
     WebhookHandler(transaction).send_webhook()
+
+
+def send_reset_link_email(link, user_email):
+    send_html_email(
+        subject='Password Reset Request - PseudoPay',
+        template_name='emails/reset_password_email.html',
+        context={
+            "reset_link": link,
+            "data": link,  # keep for backwards compat with old template
+            "user_email": user_email,
+        },
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user_email],
+    )
