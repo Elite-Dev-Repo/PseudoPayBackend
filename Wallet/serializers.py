@@ -3,9 +3,11 @@ from rest_framework import serializers
 from .models import Wallet, Transaction
 
 class WalletSerializer(serializers.ModelSerializer):
+    wallet_id = serializers.IntegerField(source='id', read_only=True)
+
     class Meta:
         model = Wallet
-        fields = ['id', 'profile', 'balance', 'currency', 'status', 'request_origin', 'created_at']
+        fields = ['id', 'wallet_id', 'profile', 'balance', 'currency', 'status', 'request_origin', 'created_at']
         extra_kwargs = {
             'profile': {'read_only': True},
             'balance': {'read_only': True},
