@@ -1,3 +1,6 @@
+from Payments.models import IdempotencyRecord
+from rest_framework.views import APIView
+import uuid
 from Wallet.services import on_transaction_commit
 from Wallet.webhooks import WebhookHandler
 from core.models import MerchantProfile
@@ -13,6 +16,7 @@ from django.db import transaction as db_transaction
 from functools import partial
 from .tasks import on_transaction_commit_task
 from rest_framework.throttling import ScopedRateThrottle
+from Payments.req_hash import generate_request_hash
 
 from ApiKeys.authentication import APIKeyHeaderAuthentication
 # Create your views here.
@@ -53,18 +57,26 @@ class ViewUserTransactionsAPIView(generics.ListAPIView):
         if user.is_superuser:
             return Transaction.objects.all()
         user_profile = MerchantProfile.objects.get(user=user)
-        return Transaction.objects.filter(wallet=user_profile.wallet)
+        return Transaction.objects.filter(wallet__profile=user_profile)
 
 
 
-class InitializeTransaction(generics.CreateAPIView):
+class InitializeTransaction(APIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [APIKeyHeaderAuthentication]
     throttle_scope = 'payments'
 
-    def create(self, request):
+    def post(self, request):
+        idempotency_key = request.headers.get('Idempotency-Key')
+        try:
+            idempotency_key = uuid.UUID(idempotency_key)    
+        except (ValueError, TypeError, AttributeError):
+            return Response(
+               { "details": "a valid idempotency key is required"}, status=status.HTTP_400_BAD_REQUEST
+            ) 
+
         with db_transaction.atomic():
             user_profile = MerchantProfile.objects.get(user=request.user)
             data= request.data
@@ -73,14 +85,38 @@ class InitializeTransaction(generics.CreateAPIView):
                 return Response({"error": "Wallet is not active"}, status=status.HTTP_400_BAD_REQUEST)
             # import sys
             # sys.exit()
+
+
             serializer = self.get_serializer(data=request.data)
             if serializer.is_valid():
+                payload = serializer.validated_data
+                request_hash = generate_request_hash(payload)
+                record, created = IdempotencyRecord.objects.get_or_create(
+                    profile = user_profile,
+                    key = idempotency_key,
+                    defaults={"request_hash": request_hash, "status": "Processing"}
+                )
+
+                IdempotencyRecord.objects.select_for_update().get(
+                    id=record.id
+                )
+                if not created:
+                    if record.request_hash != request_hash:
+                        return Response({"error": "Duplicate key error for another transaction"}, status=status.HTTP_409_CONFLICT) 
+
+                    if record.status == "Completed":
+                           return Response(record.response_body, status=record.response_status)
+
+
                 serializer.save()
                 response_data = serializer.data
                 response_data['checkout_url'] = "http://127.0.0.1:8000/api/checkout/" + serializer.data['transaction_reference']
+
+                record.response_status = status.HTTP_201_CREATED
+                record.response_body = response_data
+                record.save()
                 return Response(response_data , status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 

@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'core',
     'ApiKeys',
     'Wallet',
+    "Payments",
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -194,7 +195,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         # Unauthenticated requests
-        'anon': '10/min',
+        'anon': '50/min',
         # Wallet operations
         'wallet': '100/min',
         # Registration and OAuth login
@@ -216,20 +217,35 @@ REST_FRAMEWORK = {
     }
 }
 
+import os
+import ssl
+
 REDIS_URL = os.getenv('REDIS_BROKER_URL') or 'redis://127.0.0.1:6379/1'
 
+
+
 CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": REDIS_URL,
-        "OPTIONS": {
-            "ssl_cert_reqs": ssl.CERT_NONE,
-        } if REDIS_URL.startswith("rediss://") else {},
-    }
+   "default" : {
+    "BACKEND" : "django_redis.cache.RedisCache",
+    "LOCATION": REDIS_URL,
+    "OPTIONS": {
+   "CLIENT_CLASS": "django_redis.client.DefaultClient",
+   "SOCKET_TIMEOUT": 5,
+   "SOCKET_CONNECT_TIMEOUT": 5,
+   "IGNORE_EXCEPTIONS": True, # don't 500 throttle if redis blips
+   "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": ssl.CERT_NONE} if REDIS_URL.startswith("rediss://") else {}
 }
+   }
+   }
+
+
+
+
+
+
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=15),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
 }
 
